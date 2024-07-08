@@ -1,0 +1,196 @@
+{% extends 'master/main.html' %} {% block content %}
+
+<div class="pagetitle">
+  <h1>Dashboard</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/">Home</a></li>
+      <li class="breadcrumb-item active">Dashboard</li>
+    </ol>
+  </nav>
+</div>
+<!-- End Page Title -->
+
+<section class="section dashboard">
+  <div class="container">
+    <div class="row justify-content-center">
+      <!-- Left side columns -->
+      <div class="col-lg-8">
+        <div class="row">
+          <!-- Sales Card -->
+          <div class="col-xxl-4 col-md-6">
+            <div class="card info-card sales-card neumorphism">
+              <div class="card-body">
+                <h5 class="card-title">Nitrogen</h5>
+                <div class="d-flex align-items-center">
+                  <div
+                    class="card-icon rounded-circle d-flex align-items-center justify-content-center neumorphism-icon"
+                  >
+                    <img
+                      src="{{ url_for('static', filename='assets/img/1.png') }}"
+                      alt="Humidity Icon"
+                    />
+                  </div>
+                  <div class="ps-3">
+                    <h6>{{nitrogen}}</h6>
+                    <!-- <span class="text-success small pt-1 fw-bold">12</span> -->
+                    <!-- <span class="text-muted small pt-2 ps-1">increase</span> -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xxl-4 col-md-6">
+            <div class="card info-card sales-card neumorphism">
+              <div class="card-body">
+                <h5 class="card-title">Potassium</h5>
+                <div class="d-flex align-items-center">
+                  <div
+                    class="card-icon rounded-circle d-flex align-items-center justify-content-center neumorphism-icon"
+                  >
+                    <img
+                      src="{{ url_for('static', filename='assets/img/1.png') }}"
+                      alt="Humidity Icon"
+                    />
+                  </div>
+                  <div class="ps-3">
+                    <h6>{{potassium}}</h6>
+                    <!-- <span class="text-success small pt-1 fw-bold">12%</span> -->
+                    <!-- <span class="text-muted small pt-2 ps-1">increase</span> -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- End Revenue Card -->
+          <!-- 2 Kartu di Bawah -->
+          <!-- Phosphorus Card -->
+          <div class="col-xxl-4 col-md-6">
+            <div class="card info-card sales-card neumorphism">
+              <div class="card-body">
+                <h5 class="card-title">Phosphorus</h5>
+                <div class="d-flex align-items-center">
+                  <div
+                    class="card-icon rounded-circle d-flex align-items-center justify-content-center neumorphism-icon"
+                  >
+                    <img
+                      src="{{ url_for('static', filename='assets/img/2.png') }}"
+                      alt="Phosphorus Icon"
+                    />
+                  </div>
+                  <div class="ps-3">
+                    <h6>{{phosphor}}</h6>
+                    <!-- <span class="text-success small pt-1 fw-bold">12%</span> -->
+                    <!-- <span class="text-muted small pt-2 ps-1">increase</span> -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- End Phosphorus Card -->
+          <div class="col-xxl-4 col-md-6">
+            <div class="card info-card sales-card neumorphism">
+              <div class="card-body">
+                <h5 class="card-title">Day After Planted</h5>
+                <div class="d-flex align-items-center">
+                  <div
+                    class="card-icon rounded-circle d-flex align-items-center justify-content-center neumorphism-icon"
+                  >
+                    <img
+                      src="{{ url_for('static', filename='assets/img/3.png') }}"
+                      alt="Day Icon"
+                    />
+                  </div>
+                  <div class="ps-3">
+                    <h6 id="days-planted">0</h6>
+                    <button onclick="startPlanting()">Mulai Tanam</button>
+                    <button onclick="resetPlanting()">Reset</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-xxl-4 col-md-6">
+            <div class="card info-card sales-card neumorphism">
+              <div class="card-body">
+                <h5 class="card-title">Irregation</h5>
+                <div class="d-flex align-items-center">
+                  <div
+                    class="card-icon rounded-circle d-flex align-items-center justify-content-center neumorphism-icon"
+                  ></div>
+                  <div class="ps-3">
+                    <h6>OFF</h6>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Akhir Kartu di Bawah -->
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Tambahkan elemen untuk menampilkan waktu -->
+<div id="current-time" style="position: fixed; bottom: 10px; right: 10px"></div>
+
+<script>
+  function displayCurrentTime() {
+    const currentDate = new Date();
+    const currentTime = currentDate.toLocaleTimeString();
+    document.getElementById("current-time").innerText = currentTime;
+  }
+
+  // Panggil fungsi displayCurrentTime setiap detik
+  setInterval(displayCurrentTime, 1000);
+</script>
+
+<script>
+  let daysPlanted = 0;
+  let lastUpdatedTime = localStorage.getItem('lastUpdatedTime') ? parseInt(localStorage.getItem('lastUpdatedTime')) : new Date().getTime(); // Menyimpan waktu terakhir diperbarui
+
+  function startPlanting() {
+    const currentTime = new Date().getTime();
+    const timeDifference = currentTime - lastUpdatedTime;
+    const daysPassed = Math.floor(timeDifference / (1000 * 60 * 60 * 24)); // Menghitung hari berdasarkan selisih waktu
+
+    daysPlanted += daysPassed;
+    updateDaysPlanted();
+    lastUpdatedTime = currentTime;
+    localStorage.setItem('lastUpdatedTime', lastUpdatedTime); // Simpan waktu terakhir diperbarui ke localStorage
+    setInterval(checkDayChange, 1000); // Periksa perubahan hari setiap detik
+  }
+
+  function resetPlanting() {
+    daysPlanted = 0;
+    updateDaysPlanted();
+    lastUpdatedTime = new Date().getTime();
+    localStorage.setItem('lastUpdatedTime', lastUpdatedTime); // Simpan waktu terakhir diperbarui ke localStorage
+  }
+
+  function updateDaysPlanted() {
+    document.getElementById("days-planted").innerText = daysPlanted;
+  }
+
+  function checkDayChange() {
+    const currentTime = new Date().getTime();
+    const timeDifference = currentTime - lastUpdatedTime;
+    const daysPassed = Math.floor(timeDifference / (1000 * 60 * 60 * 24)); // Menghitung hari berdasarkan selisih waktu
+
+    if (daysPassed > 0) {
+      daysPlanted += daysPassed;
+      updateDaysPlanted();
+      lastUpdatedTime = currentTime;
+      localStorage.setItem('lastUpdatedTime', lastUpdatedTime); // Simpan waktu terakhir diperbarui ke localStorage
+    }
+  }
+
+  // Panggil startPlanting saat halaman dimuat
+  window.onload = startPlanting;
+</script>
+
+<!-- End #main -->
+{% endblock content %}
+
