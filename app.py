@@ -6,7 +6,7 @@ import requests
 app = Flask(__name__)
 
 # Define routes
-@app.route('/')
+@app.route('/dashboard')
 def index():
     title = 'Dashboard'
     # Lakukan GET request ke API
@@ -17,6 +17,10 @@ def index():
     url_phosphor = 'https://platform.antares.id:8443/~/antares-cse/antares-id/interest/phospor/la'
     url_nitrogen = 'https://platform.antares.id:8443/~/antares-cse/antares-id/interest/Nitrogen/la'
     hst = 10
+
+    # Nonaktifkan proxy
+    os.environ['no_proxy'] = 'platform.antares.id'
+
     response_potassium = requests.get(url_potassium, headers=headers)
     response_phosphor = requests.get(url_phosphor, headers=headers)
     response_nitrogen = requests.get(url_nitrogen, headers=headers)
