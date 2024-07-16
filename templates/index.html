@@ -125,7 +125,7 @@
                     />
                   </div>
                   <div class="ps-3">
-                    <h6 id="days-planted">0</h6>
+                    <h6 id="days-planted">{{ plant_age }}</h6>
                     <button onclick="startPlanting()">Mulai Tanam</button>
                     <button onclick="resetPlanting()">Reset</button>
                   </div>
@@ -171,6 +171,7 @@
 
 <script>
   let daysPlanted = 0;
+  let plantingTime = {{ planting_time | tojson | safe }};
   let lastUpdatedTime = localStorage.getItem("lastUpdatedTime")
     ? parseInt(localStorage.getItem("lastUpdatedTime"))
     : new Date().getTime(); // Menyimpan waktu terakhir diperbarui
@@ -185,6 +186,15 @@
     lastUpdatedTime = currentTime;
     localStorage.setItem("lastUpdatedTime", lastUpdatedTime); // Simpan waktu terakhir diperbarui ke localStorage
     setInterval(checkDayChange, 1000); // Periksa perubahan hari setiap detik
+
+    // Simpan waktu tanam ke server
+    fetch('/set_planting_time', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ planting_time: currentTime })
+    });
   }
 
   function resetPlanting() {
@@ -192,6 +202,15 @@
     updateDaysPlanted();
     lastUpdatedTime = new Date().getTime();
     localStorage.setItem("lastUpdatedTime", lastUpdatedTime); // Simpan waktu terakhir diperbarui ke localStorage
+
+    // Simpan waktu tanam ke server
+    fetch('/set_planting_time', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ planting_time: lastUpdatedTime })
+    });
   }
 
   function updateDaysPlanted() {
@@ -212,7 +231,14 @@
   }
 
   // Panggil startPlanting saat halaman dimuat
-  window.onload = startPlanting;
+  window.onload = function() {
+    if (plantingTime) {
+      const currentTime = new Date().getTime();
+      const timeDifference = currentTime - plantingTime;
+      daysPlanted = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+      updateDaysPlanted();
+    }
+  };
 </script>
 
 <!-- End #main -->

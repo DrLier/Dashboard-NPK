@@ -2,6 +2,7 @@ import os
 from flask import Flask, render_template, request, jsonify
 import requests
 import json
+from datetime import datetime
 
 # Create the Flask application instance
 app = Flask(__name__)
@@ -20,6 +21,14 @@ def get_planting_time():
             return data.get('planting_time', None)
     except FileNotFoundError:
         return None
+
+def calculate_plant_age(planting_time):
+    if planting_time:
+        planting_time = datetime.fromtimestamp(planting_time / 1000)  # Convert from milliseconds to seconds
+        current_time = datetime.now()
+        age_in_days = (current_time - planting_time).days
+        return age_in_days
+    return 0
 
 # Define routes
 @app.route('/')
@@ -65,10 +74,11 @@ def index():
         ph_value = int(ph_value) / 100  # Sesuaikan format nilai pH
         
         planting_time = get_planting_time()
+        plant_age = calculate_plant_age(planting_time)
         
-        return render_template('index.html', potassium=potassium_value, phosphor=phosphor_value, nitrogen=nitrogen_value, ph=ph_value, hst=hst, title=title, planting_time=planting_time)
+        return render_template('index.html', potassium=potassium_value, phosphor=phosphor_value, nitrogen=nitrogen_value, ph=ph_value, hst=hst, title=title, planting_time=planting_time, plant_age=plant_age)
     else:
-        return render_template('index.html', title=title, potassium=0, phosphor=0, nitrogen=0, ph=0)
+        return render_template('index.html', title=title, potassium=0, phosphor=0, nitrogen=0, ph=0, plant_age=0)
 
 @app.route('/set_planting_time', methods=['POST'])
 def set_planting_time():
