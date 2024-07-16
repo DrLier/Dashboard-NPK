@@ -32,7 +32,7 @@
                     />
                   </div>
                   <div class="ps-3">
-                    <h6>{{nitrogen}}</h6>
+                    <h6 id="nitrogen-value">{{nitrogen}}</h6>
                     <!-- <span class="text-success small pt-1 fw-bold">12</span> -->
                     <!-- <span class="text-muted small pt-2 ps-1">increase</span> -->
                   </div>
@@ -55,7 +55,7 @@
                     />
                   </div>
                   <div class="ps-3">
-                    <h6>{{potassium}}</h6>
+                    <h6 id="potassium-value">{{potassium}}</h6>
                     <!-- <span class="text-success small pt-1 fw-bold">12%</span> -->
                     <!-- <span class="text-muted small pt-2 ps-1">increase</span> -->
                   </div>
@@ -80,7 +80,7 @@
                     />
                   </div>
                   <div class="ps-3">
-                    <h6>{{phosphor}}</h6>
+                    <h6 id="phosphor-value">{{phosphor}}</h6>
                     <!-- <span class="text-success small pt-1 fw-bold">12%</span> -->
                     <!-- <span class="text-muted small pt-2 ps-1">increase</span> -->
                   </div>
@@ -103,7 +103,7 @@
                     />
                   </div>
                   <div class="ps-3">
-                    <h6>{{ph}}</h6>
+                    <h6 id="ph-value">{{ph}}</h6>
                     <!-- <span class="text-success small pt-1 fw-bold">12%</span> -->
                     <!-- <span class="text-muted small pt-2 ps-1">increase</span> -->
                   </div>
@@ -239,6 +239,21 @@
       updateDaysPlanted();
     }
   };
+
+  // Fungsi untuk memperbarui nilai NPK secara berkala
+  function updateNPKValues() {
+    fetch('/get_npk_values')
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('nitrogen-value').innerText = data.nitrogen;
+        document.getElementById('potassium-value').innerText = data.potassium;
+        document.getElementById('phosphor-value').innerText = data.phosphor;
+        document.getElementById('ph-value').innerText = data.ph;
+      });
+  }
+
+  // Panggil updateNPKValues setiap 12 jam (43,200,000 milidetik)
+  setInterval(updateNPKValues, 43200000);
 </script>
 
 <!-- End #main -->
