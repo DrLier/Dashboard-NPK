@@ -92,6 +92,28 @@
           <div class="col-xxl-4 col-md-6">
             <div class="card info-card sales-card neumorphism">
               <div class="card-body">
+                <h5 class="card-title">PH</h5>
+                <div class="d-flex align-items-center">
+                  <div
+                    class="card-icon rounded-circle d-flex align-items-center justify-content-center neumorphism-icon"
+                  >
+                    <img
+                      src="{{ url_for('static', filename='assets/img/2.png') }}"
+                      alt="Ph Icon"
+                    />
+                  </div>
+                  <div class="ps-3">
+                    <h6>{{ph}}</h6>
+                    <!-- <span class="text-success small pt-1 fw-bold">12%</span> -->
+                    <!-- <span class="text-muted small pt-2 ps-1">increase</span> -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-xxl-4 col-md-6">
+            <div class="card info-card sales-card neumorphism">
+              <div class="card-body">
                 <h5 class="card-title">Day After Planted</h5>
                 <div class="d-flex align-items-center">
                   <div
@@ -149,7 +171,9 @@
 
 <script>
   let daysPlanted = 0;
-  let lastUpdatedTime = localStorage.getItem('lastUpdatedTime') ? parseInt(localStorage.getItem('lastUpdatedTime')) : new Date().getTime(); // Menyimpan waktu terakhir diperbarui
+  let lastUpdatedTime = localStorage.getItem("lastUpdatedTime")
+    ? parseInt(localStorage.getItem("lastUpdatedTime"))
+    : new Date().getTime(); // Menyimpan waktu terakhir diperbarui
 
   function startPlanting() {
     const currentTime = new Date().getTime();
@@ -159,7 +183,7 @@
     daysPlanted += daysPassed;
     updateDaysPlanted();
     lastUpdatedTime = currentTime;
-    localStorage.setItem('lastUpdatedTime', lastUpdatedTime); // Simpan waktu terakhir diperbarui ke localStorage
+    localStorage.setItem("lastUpdatedTime", lastUpdatedTime); // Simpan waktu terakhir diperbarui ke localStorage
     setInterval(checkDayChange, 1000); // Periksa perubahan hari setiap detik
   }
 
@@ -167,7 +191,7 @@
     daysPlanted = 0;
     updateDaysPlanted();
     lastUpdatedTime = new Date().getTime();
-    localStorage.setItem('lastUpdatedTime', lastUpdatedTime); // Simpan waktu terakhir diperbarui ke localStorage
+    localStorage.setItem("lastUpdatedTime", lastUpdatedTime); // Simpan waktu terakhir diperbarui ke localStorage
   }
 
   function updateDaysPlanted() {
@@ -183,7 +207,7 @@
       daysPlanted += daysPassed;
       updateDaysPlanted();
       lastUpdatedTime = currentTime;
-      localStorage.setItem('lastUpdatedTime', lastUpdatedTime); // Simpan waktu terakhir diperbarui ke localStorage
+      localStorage.setItem("lastUpdatedTime", lastUpdatedTime); // Simpan waktu terakhir diperbarui ke localStorage
     }
   }
 
@@ -193,4 +217,3 @@
 
 <!-- End #main -->
 {% endblock content %}
-

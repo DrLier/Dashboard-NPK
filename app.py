@@ -6,7 +6,7 @@ import requests
 app = Flask(__name__)
 
 # Define routes
-@app.route('/dashboard')
+@app.route('/')
 def index():
     title = 'Dashboard'
     # Lakukan GET request ke API
@@ -16,6 +16,7 @@ def index():
     url_potassium = 'https://platform.antares.id:8443/~/antares-cse/antares-id/interest/pota/la'
     url_phosphor = 'https://platform.antares.id:8443/~/antares-cse/antares-id/interest/phospor/la'
     url_nitrogen = 'https://platform.antares.id:8443/~/antares-cse/antares-id/interest/Nitrogen/la'
+    url_ph = 'https://platform.antares.id:8443/~/antares-cse/antares-id/interest/ph/la'
     hst = 10
 
     # Nonaktifkan proxy
@@ -24,6 +25,7 @@ def index():
     response_potassium = requests.get(url_potassium, headers=headers)
     response_phosphor = requests.get(url_phosphor, headers=headers)
     response_nitrogen = requests.get(url_nitrogen, headers=headers)
+    response_ph = requests.get(url_ph, headers=headers)
 
     if response_potassium.status_code == 200 and response_phosphor.status_code == 200 and response_nitrogen.status_code == 200:
         data_potassium = response_potassium.json()
@@ -41,9 +43,14 @@ def index():
         nitrogen_value = nitrogen_value.strip("'")
         nitrogen_value = int(nitrogen_value)
 
-        return render_template('index.html', potassium=potassium_value, phosphor=phosphor_value, nitrogen=nitrogen_value, hst=hst, title=title)
+        data_ph = response_ph.json()
+        ph_value = data_ph['m2m:cin']['con']
+        ph_value = ph_value.strip("'")
+        ph_value = int(ph_value) / 100  # Sesuaikan format nilai pH
+        
+        return render_template('index.html', potassium=potassium_value, phosphor=phosphor_value, nitrogen=nitrogen_value, ph=ph_value, hst=hst, title=title)
     else:
-        return render_template('index.html', title=title, potassium=0, phosphor=0, nitrogen=0)
+        return render_template('index.html', title=title, potassium=0, phosphor=0, nitrogen=0, ph=0)
 
 # Run the application
 if __name__ == '__main__':
