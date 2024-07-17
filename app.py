@@ -30,11 +30,7 @@ def calculate_plant_age(planting_time):
         return age_in_days
     return 0
 
-# Define routes
-@app.route('/')
-def index():
-    title = 'Dashboard'
-    # Lakukan GET request ke API
+def get_npk_values():
     headers = {
         'X-M2M-Origin': '44dbb85550128192:c079ec55758e79bb'
     }
@@ -42,10 +38,6 @@ def index():
     url_phosphor = 'https://platform.antares.id:8443/~/antares-cse/antares-id/interest/phospor/la'
     url_nitrogen = 'https://platform.antares.id:8443/~/antares-cse/antares-id/interest/Nitrogen/la'
     url_ph = 'https://platform.antares.id:8443/~/antares-cse/antares-id/interest/ph/la'
-    hst = 10
-
-    # Nonaktifkan proxy
-    os.environ['no_proxy'] = 'platform.antares.id'
 
     response_potassium = requests.get(url_potassium, headers=headers)
     response_phosphor = requests.get(url_phosphor, headers=headers)
@@ -72,19 +64,51 @@ def index():
         ph_value = data_ph['m2m:cin']['con']
         ph_value = ph_value.strip("'")
         ph_value = int(ph_value) / 100  # Sesuaikan format nilai pH
-        
-        planting_time = get_planting_time()
-        plant_age = calculate_plant_age(planting_time)
-        
-        return render_template('index.html', potassium=potassium_value, phosphor=phosphor_value, nitrogen=nitrogen_value, ph=ph_value, hst=hst, title=title, planting_time=planting_time, plant_age=plant_age)
+
+        return {
+            'potassium': potassium_value,
+            'phosphor': phosphor_value,
+            'nitrogen': nitrogen_value,
+            'ph': ph_value
+        }
     else:
-        return render_template('index.html', title=title, potassium=0, phosphor=0, nitrogen=0, ph=0, plant_age=0)
+        return {
+            'potassium': 0,
+            'phosphor': 0,
+            'nitrogen': 0,
+            'ph': 0
+        }
+
+# Define routes
+@app.route('/')
+def index():
+    title = 'Dashboard'
+    hst = 10
+
+    planting_time = get_planting_time()
+    plant_age = calculate_plant_age(planting_time)
+    npk_values = get_npk_values()
+
+    return render_template('index.html', 
+                           potassium=npk_values['potassium'], 
+                           phosphor=npk_values['phosphor'], 
+                           nitrogen=npk_values['nitrogen'], 
+                           ph=npk_values['ph'], 
+                           hst=hst, 
+                           title=title, 
+                           planting_time=planting_time, 
+                           plant_age=plant_age)
 
 @app.route('/set_planting_time', methods=['POST'])
 def set_planting_time():
     planting_time = request.json.get('planting_time')
     save_planting_time(planting_time)
     return jsonify({'status': 'success'})
+
+@app.route('/get_npk_values', methods=['GET'])
+def get_npk_values_route():
+    npk_values = get_npk_values()
+    return jsonify(npk_values)
 
 # Run the application
 if __name__ == '__main__':
