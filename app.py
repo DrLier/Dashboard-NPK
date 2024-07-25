@@ -3,12 +3,18 @@ from flask import Flask, render_template, request, jsonify
 import requests
 import json
 from datetime import datetime
+import pandas as pd
+import joblib  # Untuk memuat model machine learning
 
 # Create the Flask application instance
 app = Flask(__name__)
 
 # File untuk menyimpan waktu tanam
 PLANTING_TIME_FILE = 'planting_time.json'
+MODEL_FILE = 'model.pkl'  # Nama file model machine learning
+
+# Muat model machine learning
+model = joblib.load(MODEL_FILE)
 
 def save_planting_time(planting_time):
     with open(PLANTING_TIME_FILE, 'w') as f:
@@ -79,6 +85,11 @@ def get_npk_values():
             'ph': 0
         }
 
+def predict_with_model(nitrogen, phosphor, potassium):
+    input_data = pd.DataFrame([[nitrogen, phosphor, potassium]], columns=['Nitrogen', 'Phospor', 'Potasium'])
+    prediction = model.predict(input_data)
+    return prediction[0]
+
 # Define routes
 @app.route('/')
 def index():
@@ -89,6 +100,9 @@ def index():
     plant_age = calculate_plant_age(planting_time)
     npk_values = get_npk_values()
 
+    # Prediksi menggunakan model machine learning
+    prediction = predict_with_model(npk_values['nitrogen'], npk_values['phosphor'], npk_values['potassium'])
+
     return render_template('index.html', 
                            potassium=npk_values['potassium'], 
                            phosphor=npk_values['phosphor'], 
@@ -97,7 +111,8 @@ def index():
                            hst=hst, 
                            title=title, 
                            planting_time=planting_time, 
-                           plant_age=plant_age)
+                           plant_age=plant_age,
+                           prediction=prediction)
 
 @app.route('/set_planting_time', methods=['POST'])
 def set_planting_time():
