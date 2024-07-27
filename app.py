@@ -72,9 +72,15 @@ def get_npk_values():
         ph_value = int(ph_value) / 100  # Sesuaikan format nilai pH
 
         return {
-            'potassium': potassium_value,
-            'phosphor': phosphor_value,
-            'nitrogen': nitrogen_value,
+            # 'potassium': potassium_value,
+            # 'phosphor': phosphor_value,
+            # 'nitrogen': nitrogen_value,
+            # 'ph': ph_value
+            
+    # Tes Value
+            'potassium': 10,
+            'phosphor': 10,
+            'nitrogen': 10,
             'ph': ph_value
         }
     else:
@@ -88,7 +94,13 @@ def get_npk_values():
 def predict_with_model(nitrogen, phosphor, potassium):
     input_data = pd.DataFrame([[nitrogen, phosphor, potassium]], columns=['Nitrogen', 'Phospor', 'Potasium'])
     prediction = model.predict(input_data)
-    return prediction[0]
+    # return prediction[0]
+
+
+    predicted_status = prediction[0]
+    # Decode hasil prediksi menjadi label asli
+    predicted_label = 'Butuh Pupuk' if predicted_status == 1 else 'Tidak Butuh Pupuk'
+    return predicted_label
 
 # Define routes
 @app.route('/')
