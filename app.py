@@ -72,16 +72,16 @@ def get_npk_values():
         ph_value = int(ph_value) / 100  # Sesuaikan format nilai pH
 
         return {
-            # 'potassium': potassium_value,
-            # 'phosphor': phosphor_value,
-            # 'nitrogen': nitrogen_value,
-            # 'ph': ph_value
-            
-    # Tes Value
-            'potassium': 10,
-            'phosphor': 10,
-            'nitrogen': 10,
+            'potassium': potassium_value,
+            'phosphor': phosphor_value,
+            'nitrogen': nitrogen_value,
             'ph': ph_value
+            
+    # # Tes Value
+    #         'potassium': 10,
+    #         'phosphor': 10,
+    #         'nitrogen': 10,
+    #         'ph': ph_value
         }
     else:
         return {
