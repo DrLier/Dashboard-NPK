@@ -2,13 +2,16 @@ import os
 from flask import Flask, render_template, request, jsonify
 import requests
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+import pandas as pd
+import joblib
 
 # Create the Flask application instance
 app = Flask(__name__)
 
-# File untuk menyimpan waktu tanam
+# File untuk menyimpan waktu tanam dan prediksi
 PLANTING_TIME_FILE = 'planting_time.json'
+PREDICTION_HISTORY_FILE = 'prediction_history.json'
 
 def save_planting_time(planting_time):
     with open(PLANTING_TIME_FILE, 'w') as f:
@@ -21,6 +24,32 @@ def get_planting_time():
             return data.get('planting_time', None)
     except FileNotFoundError:
         return None
+
+def save_prediction_history(prediction):
+    try:
+        with open(PREDICTION_HISTORY_FILE, 'r') as f:
+            history = json.load(f)
+    except FileNotFoundError:
+        history = []
+
+    # Check if there is already an entry for today
+    today = datetime.now().date()
+    if any(datetime.fromisoformat(entry['timestamp']).date() == today for entry in history):
+        return
+
+    history.append({'timestamp': datetime.now().isoformat(), 'prediction': prediction})
+    with open(PREDICTION_HISTORY_FILE, 'w') as f:
+        json.dump(history, f)
+
+def get_prediction_history():
+    try:
+        with open(PREDICTION_HISTORY_FILE, 'r') as f:
+            history = json.load(f)
+            # Filter data untuk 7 hari terakhir
+            seven_days_ago = datetime.now() - timedelta(days=7)
+            return [entry for entry in history if datetime.fromisoformat(entry['timestamp']) > seven_days_ago]
+    except FileNotFoundError:
+        return []
 
 def calculate_plant_age(planting_time):
     if planting_time:
@@ -59,6 +88,7 @@ def get_npk_values():
         nitrogen_value = data_nitrogen['m2m:cin']['con']
         nitrogen_value = nitrogen_value.strip("'")
         nitrogen_value = int(nitrogen_value)
+        nitrogen_timestamp = data_nitrogen['m2m:cin']['ct']  # Mengambil timestamp
 
         data_ph = response_ph.json()
         ph_value = data_ph['m2m:cin']['con']
@@ -69,15 +99,30 @@ def get_npk_values():
             'potassium': potassium_value,
             'phosphor': phosphor_value,
             'nitrogen': nitrogen_value,
-            'ph': ph_value
+            'ph': ph_value,
+            'nitrogen_timestamp': nitrogen_timestamp  # Menambahkan timestamp ke hasil
         }
     else:
         return {
             'potassium': 0,
             'phosphor': 0,
             'nitrogen': 0,
-            'ph': 0
+            'ph': 0,
+            'nitrogen_timestamp': None  # Menambahkan timestamp ke hasil
         }
+
+def predict_status(nitrogen, phospor, potassium):
+    # Memuat model yang telah disimpan
+    model = joblib.load('model.pkl')
+    
+    # Membuat DataFrame untuk data input
+    data = pd.DataFrame([[nitrogen, phospor, potassium]], columns=['Nitrogen', 'Phospor', 'Potasium'])
+    
+    # Melakukan prediksi
+    prediction = model.predict(data)
+    
+    # Mengembalikan hasil prediksi
+    return 'Butuh Pupuk' if prediction[0] == 1 else 'Tidak Butuh Pupuk'
 
 # Define routes
 @app.route('/')
@@ -88,6 +133,10 @@ def index():
     planting_time = get_planting_time()
     plant_age = calculate_plant_age(planting_time)
     npk_values = get_npk_values()
+    prediction = predict_status(npk_values['nitrogen'], npk_values['phosphor'], npk_values['potassium'])
+    
+    # Simpan hasil prediksi ke dalam history
+    save_prediction_history(prediction)
 
     return render_template('index.html', 
                            potassium=npk_values['potassium'], 
@@ -97,7 +146,9 @@ def index():
                            hst=hst, 
                            title=title, 
                            planting_time=planting_time, 
-                           plant_age=plant_age)
+                           plant_age=plant_age,
+                           prediction=prediction,
+                           nitrogen_timestamp=npk_values['nitrogen_timestamp'])  # Menambahkan timestamp ke template
 
 @app.route('/set_planting_time', methods=['POST'])
 def set_planting_time():
@@ -110,7 +161,19 @@ def get_npk_values_route():
     npk_values = get_npk_values()
     return jsonify(npk_values)
 
+@app.route('/get_prediction_history', methods=['GET'])
+def get_prediction_history_route():
+    history = get_prediction_history()
+    return jsonify(history)
+
+@app.route('/get_latest_timestamp', methods=['GET'])
+def get_latest_timestamp():
+    npk_values = get_npk_values()
+    return jsonify({'nitrogen_timestamp': npk_values['nitrogen_timestamp']})
+
 # Run the application
 if __name__ == '__main__':
+
     port = int(os.environ.get('PORT', 5000))
+
     app.run(host='0.0.0.0', port=port, debug=False)
